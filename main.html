@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trippy 3D Pattern</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5/6en8XCp+HHAAK5GSLf2xlYtvJ8U2Q4U+9cuEnJoa3" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous" type="text/css">
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Orbitron', sans-serif;
+        color: white;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .section {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.5s;
+        max-width: 50%;
+      }
+
+      .section.visible {
+        opacity: 1;
+      }
+
+      .nav-bar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .nav-link {
+        color: white;
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+
+      .nav-link:hover {
+        color: #999;
+      }
+
+      .social-icons {
+        position: absolute;
+        font-size: 25px;
+        bottom: 34%;
+        left: 50%;
+        display: flex;
+        gap: 25px;
+        transform: translateX(-50%);
+        z-index: 100;
+      }
+
+      .social-icon {
+        transition: color 0.3s;
+      }
+
+      .social-icon.glow {
+        color: #999;
+      }
+      .social-icon:hover {
+        color: #00ff00;
+      }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+  </head>
+  <body>
+    <!-- Added sections for About Me, Projects, and Contacts -->
+    <!-- Text Sections -->
+    <div id="info" class="section visible">
+      <h1>Nishanth G</h1>
+      <p>Software Engineer</p>
+    </div>
+
+    <div id="about-me" class="section">
+      <h1>About Me</h1>
+      <p>Hey there! I'm a software developer who's always on the hunt for the latest and greatest tech. Whether it's tinkering with new programming languages or diving deep into cutting-edge frameworks, I love pushing the boundaries of what's possible. And when I'm not doing that, you can usually find me immersed in a video game (because who doesn't love a good virtual adventure?). </p>
+    </div>
+
+    
+
+    <div id="connect" class="section">
+      <h1>Connect</h1>
+      <p>Whether you have a specific project in mind or just want to chat about the latest trends in tech, I'm always up for a good conversation. Let's geek out over code and see where it takes us!</p>
+    </div>
+
+
+<!-- Social Icons -->
+<div class="social-icons">
+  <a href="https://github.com/Nishanth-works" target="_blank" style="color: #d5d4d6;" data-color="#8000ff"  class="icon-links"><i class="fab fa-github social-icon"></i></a>
+  <a href="https://nishanth-g.medium.com/" target="_blank" style="color: #6ef186;" data-color="#09ff36" class="icon-links"><i class="fab fa-medium-m social-icon"></i></a>
+  <a href="mailto:g.nishanth@live.com" style="color: #f31818;" data-color="#f31818" class="icon-links"><i class="fas fa-envelope social-icon"></i></a>
+  <a href="https://www.linkedin.com/in/nishanth-gandhi-350b54165/" target="_blank" style="color: #2f77ea;" data-color="#2f77ea" class="icon-links"><i class="fab fa-linkedin-in social-icon"></i></a>
+</div>
+
+    <audio id="spaceAudio" autoplay loop muted>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+    <script>
+      // Set up the scene, camera, and renderer
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Create the diamond (Dodecahedron)
+      const geometry = new THREE.DodecahedronGeometry(-5, 0);
+      const material = new THREE.MeshPhongMaterial({ color: 0x666666, shininess: 100, transparent: false, opacity: 1 });
+      const diamond = new THREE.Mesh(geometry, material);
+      scene.add(diamond);
+
+      // Add a light source
+      const light = new THREE.PointLight(0xEEEEEE, 0.5, 100);
+      scene.add(light);
+      
+
+      // Create the star particles
+      const starGeometry = new THREE.BufferGeometry();
+      const starMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.01,
+        transparent: true,
+        opacity: 1,
+      });
+      const starCount = 100000;
+      const starPositions = new Float32Array(starCount * 3);
+      const starOrigins = new Float32Array(starCount * 3);
+      const repelRadius = 45;
+      for (let i = 0; i < starCount * 3; i++) {
+    starPositions[i] = (Math.random() - 0.5) * 200;
+    starOrigins[i] = starPositions[i];
+  }
+  const iconLinkss = document.querySelectorAll(".icon-links");
+
+iconLinkss.forEach((link) => {
+  link.addEventListener("mouseover", () => {
+    link.firstElementChild.classList.add("glow");
+    const color = link.getAttribute("data-color");
+    starMaterial.color.set(color);
+  });
+  const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00];
+  link.addEventListener("mouseout", () => {
+    link.firstElementChild.classList.remove("glow");
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    starMaterial.color.set(randomColor);
+ // Reset the star color to white
+  });
+});
+
+      // Add this event listener
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelector("#info").classList.add("visible");
+      });
+
+// Animate stars surrounding the section
+function animateStarsSurroundSection(sectionId) {
+        const sectionElement = document.querySelector(sectionId);
+
+        if (!sectionElement.classList.contains('visible')) {
+          return;
+        }
+
+        const rect = sectionElement.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const radius = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2 + 5;
+
+        for (let i = 0; i < starCount; i++) {
+          const starX = stars.geometry.attributes.position.array[i * 3];
+          const starY = stars.geometry.attributes.position.array[i * 3 + 1];
+          const dx = starX - centerX;
+          const dy = starY - centerY;
+          const distance = Mathsqrt(dx * dx + dy * dy);
+          if (distance < radius) {
+        const angle = Math.atan2(dy, dx);
+        const targetX = centerX + radius * Math.cos(angle);
+        const targetY = centerY + radius * Math.sin(angle);
+        stars.geometry.attributes.position.array[i * 3] = targetX;
+        stars.geometry.attributes.position.array[i * 3 + 1] = targetY;
+      }
+    }
+  }
+
+  // Update sections visibility based on scroll
+  function updateSectionsVisibility() {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach((section, index) => {
+      if (scrollThreshold >= index * 4 && scrollThreshold < (index ) * 4) {
+        section.classList.add('visible');
+      } else {
+        section.classList.remove('visible');
+      }
+    });
+  }
+
+  // Animate function update
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // Animate stars
+    // ...previous stars animation code...
+
+    // Update sections visibility
+    updateSectionsVisibility();
+
+    // Animate stars surrounding the section
+    animateStarsSurroundSection('#about-me');
+    animateStarsSurroundSection('#info');
+    animateStarsSurroundSection('#connect');
+
+    renderer.render(scene, camera);
+  }
+
+
+  function unmuteAudio() {
+        const audio = document.getElementById('spaceAudio');
+        if (audio.muted) {
+          audio.muted = false;
+        }
+      }
+      
+      document.addEventListener('mousemove', event => {
+        handlePointer(event.clientX, event.clientY);
+        unmuteAudio();
+      });
+      
+      document.addEventListener('touchmove', event => {
+        handlePointer(event.touches[0].clientX, event.touches[0].clientY);
+        unmuteAudio();
+      });
+
+  starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  scene.add(stars);
+
+  // Set the camera position
+  camera.position.z = 40;
+
+  // Animation and interactivity
+  function animate() {
+    requestAnimationFrame(animate);
+
+    // Animate stars
+    stars.geometry.attributes.position.needsUpdate = true;
+    for (let i = 0; i < starCount; i++) {
+      stars.geometry.attributes.position.array[i * 3 + 1] += 0.1;
+      if (stars.geometry.attributes.position.array[i * 3 + 1] > 100) {
+        stars.geometry.attributes.position.array[i * 3 + 1] = -100;
+      }
+    }
+
+    renderer.render(scene, camera);
+  }
+
+  // Adjust the camera aspect ratio when the window is resized
+  window.addEventListener("resize", () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  });
+
+  // Handle pointer movement
+  function handlePointer(x, y) {
+    const pointerX = (x / window.innerWidth) * 2 - 1;
+    const pointerY = -(y / window.innerHeight) * 2 + 1;
+
+    diamond.rotation.y = pointerX * Math.PI;
+    diamond.rotation.x = pointerY * Math.PI;
+
+    // Update the light source position based on pointer position
+    light.position.set(pointerX * 10, pointerY * 10, 10);
+
+    // Repel stars from pointer
+    for (let i = 0; i < starCount; i++) {
+      const dx = pointerX * 100 - starOrigins[i * 3];
+      const dy = pointerY * 100 - starOrigins[i * 3 + 1];
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < repelRadius) {
+        const repelFactor = 1 - distance / repelRadius;
+        stars.geometry.attributes.position.array[i * 3] = starOrigins[i * 3] + dx * repelFactor;
+        stars.geometry.attributes.position.array[i * 3 + 1] = starOrigins[i * 3 + 1] + dy * repelFactor;
+      } else {
+        stars.geometry.attributes.position.array[i * 3] = starOrigins[i * 3];
+        stars.geometry.attributes.position.array[i * 3 + 1] = starOrigins[i * 3 + 1];
+      }
+    }
+  }
+
+  document.addEventListener("mousemove", event => {
+    handlePointer(event.clientX, event.clientY);
+  });
+
+  document.addEventListener("touchmove", event => {
+    handlePointer(event.touches[0].clientX, event.touches[0].clientY);
+  });
+const iconLinks = document.querySelectorAll(".icon-links a");
+
+iconLinks.forEach((link) => {
+  link.addEventListener("mouseover", () => {
+link.firstElementChild.classList.add("glow");
+});
+
+link.addEventListener("mouseout", () => {
+link.firstElementChild.classList.remove("glow");
+});
+});
+  // Handle scroll
+  let scrollThreshold = 0;
+
+document.addEventListener("wheel", event => {
+  const delta = Math.sign(event.deltaY) * 0.1;
+  scrollThreshold += delta;
+
+  if (scrollThreshold < 0) {
+    scrollThreshold = 0;
+  }
+
+  const sections = document.querySelectorAll(".section");
+  const totalThresholds = 12;
+  sections.forEach((section, index) => {
+          if (scrollThreshold > totalThresholds * index && scrollThreshold < totalThresholds * (index + 1)) {
+            section.classList.add("visible");
+          } else {
+            section.classList.remove("visible");
+          }
+        });
+
+
+// Navigation
+const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const targetId = event.target.getAttribute('href');
+      const targetSection = document.querySelector(targetId);
+
+      document.querySelectorAll('.section').forEach((section) => {
+        section.classList.remove('visible');
+      });
+
+      targetSection.classList.add('visible');
+    });
+  });
+
+  const iconLinks = document.querySelectorAll(".icon-links");
+  iconLinks.forEach((link) => {
+    link.addEventListener("mouseover", () => {
+      link.firstElementChild.classList.add("glow");
+    });
+
+    link.addEventListener("mouseout", () => {
+      link.firstElementChild.classList.remove("glow");
+    });
+  });
+  // Update space background
+  stars.position.z += delta * 5;
+
+  // Update diamond rotation
+  if (scrollThreshold < totalThresholds*8) {
+    const rotation = scrollThreshold / totalThresholds * Math.PI * 6;
+    diamond.rotation.z = rotation;
+  }
+});
+
+// Reset diamond rotation when scrolling stops
+
+
+let scrollTimer;
+document.addEventListener("scroll", () => {
+  
+
+    // Update space background
+    stars.position.z += delta * 5;
+  });
+
+  animate();
+</script>
+  </body>
+</html>
